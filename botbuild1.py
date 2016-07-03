@@ -42,9 +42,8 @@ class LearningBot:
             except:
                 dic[i] = 0
         return dic
-    def thinktruthes(self,info,influence):
+    def thinktruthes(self,info,influence): # data processing
         beliefdict = {}
-        totalbelief = 0
         for i in range(len(info)-1):
             if info[-1][1] == info[i][1]:
                 try:

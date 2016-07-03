@@ -17,7 +17,7 @@ This bot uses geometric conservatism bias and will weigh the initial data more t
 // (c) Alex Shukhman: July 3, 2016
 
 
-////////////////////////////// Bot Object ////////////////////////////////
+//////////////////////////////////Bot Object////////////////////////////////////////////////
 var base = {}; // grandparent for all instances
 var LearningBot_instance = create(base); // parent to all LearningBots
 
@@ -47,18 +47,39 @@ var LearningBot = function(dep,truthesmem,truthesbelief) // creator function for
 	return instance;
 }
 
-LearningBot_instance.teachtruthes = function (info, influence)
+LearningBot_instance.teachtruthes = function (info, influence) // info is a list of 4 elements of len2 lists, influence is a value <=1
 {
 	if (typeof influence === 'undefined') {var influence = 1;}
 	this.truthesmem.push(info);
 	this.thinktruthes(info,influence);
 }
-LearningBot_instance.evenate = function ( d )
+LearningBot_instance.evenate = function ( d ) // sets total of dictionary values to 1
 {
 	var total = 0;
 	dic = shallowcopy(d);
-	for (var i in obj){total=total+dic[i];}
-	for (var i in obj){ try{dic[i] = dic[i]/total} catch(e){dic[i]=0} }
+	for (var i in obj){total+=dic[i];}
+	for (var i in obj){ try{dic[i] /= total} catch(e){dic[i]=0} }
 	return dic;
 }
-
+LearningBot_instance.thinktruthes = function (info, influence) // data processing
+{
+	var beliefdict = {};
+	for (var i = 0; i < info.length -1; i++)
+	{
+		try {beliefdict[info[i][0]]++;}
+		catch (e) {beliefdict[info[i][0];}
+	}
+	for (var i = 0; i < info.length -1; i++)
+	{
+		if (!(info[i][0] in beliefdict)){beliefdict[info[i][0]] = 0;}
+	}
+	beliefdict = this.evenate(beliefdict);
+	for (var i in beliefdict)
+	{
+		if ( i in this.truthesbelief_tot ) { this.truthesbelief_tot[i]+=((beliefdict[i]/this.belief)*influence);}
+		else {this.truthesbelief_tot[i]=((beliefdict[i]/this.belief)*influence);} 
+	}
+	this.truthesbelief = this.evenate(this.truthesbelief_tot);
+	this.belief /= this.dep;
+}
+/////////////////////////////////End Bot Object/////////////////////////////////////////////
