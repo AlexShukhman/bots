@@ -32,6 +32,7 @@ class LearningBot:
         self.truthesmem.append(info)
         self.thinktruthes(info, influence)
     def evenate(self,d): # sets total of dictionary values to 1
+    i
         total = 0
         dic = d.copy()
         for i in dic.keys():
@@ -70,4 +71,5 @@ a = 'a'
 info = [[[1,1],[2,0],[3,1],[a,1]],[[4,1],[2,0],[3,1],[a,1]],[[3,1],[2,1],[4,0],[a,0]],[[1,0],[2,1],[3,1],[a,0]],[[1,1],[2,0],[3,1],[a,0]],[[5,0],[2,1],[3,1],[a,0]],[[1,0],[2,1],[3,1],[a,0]]]
 for i in info:
     botA.teachtruthes(i)
-    print (botA.truthesbelief)
+
+print (botA.truthesbelief)
