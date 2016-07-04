@@ -1,65 +1,96 @@
 # Try One at Neural Net for pattern recognition (c) Alex Shukhman, 2016
 from math import *
 from random import *
+import json
+
+global data
+def read():
+    with open ('data.json', 'r') as f:
+        try:
+            return json.load(f)
+        except:
+            return {}
+data = read()
 
 class Node:
-    def __init__(self, name, inputnodes, iweight, function, outputNumber):
+    def __init__(self, name, inputnodes, iweights, function, outputNumber):
         self.inputs = inputnodes
-        self.iw = iweight # from upstream nodes
+        self.iws = iweights # from upstream nodes
         self.name = name
         self.function = function
-        self.setOWeights(outputNumber)
-    def setOWeights(self, outputNumber):
-        self.oWeights = {}
+        self.setupOWeights(outputNumber)
+    def read(self):
+        with open ('data.json', 'r') as f:
+            data = json.load(f)
+    def write(self):
+        with open ('data.json', 'w') as f:
+            json.dump(data, f)
+        print(json.dumps(data, indent = 4, sort_keys=True))
+    def setupOWeights(self, outputNumber):
+        self.oWeights = []
         for i in range(outputNumber):
-            self.oWeights[i] = random()
-    def findStartNode(self, node, previousNode=None):
-        if node.findStartNode(node, previousNode) == None:
-            if previousNode != None:
-                return previousNode.inputs
-            else:
-                print ('started too far back')
-                return 
+            self.oWeights.append(random())
+        '''if data == {}:
+            self.oWeights = []
+            for i in range(outputNumber):
+                self.oWeights.append(random())
         else:
-            for i in self.inputs:
-                return i.findStartNode(i,self)
+            minilist = []
+            for i in range(outputNumber):
+                pass
+            self.oWeights = minilist'''
+    def findStartNode(self, node, previousNode):
+        if node.inputs[0].findStartNode(node.inputs[0], node) == None:
+            return node.inputs
+        else:
+            return node.inputs[0].findStartNode(node.inputs[0], node)
     def runSim(self,oweight):
         minilist = []
         for i in range(len(self.inputs)):
-            minilist.append(self.inputs[i].runsim(self.iw[i]))
-        self.fx = classmethod(self.function(self,minilist))
-        return oweight*self.fx(minilist)
+            minilist.append(self.inputs[i].runSim(self.iws[i]))
+        self.fx = self.function(self,minilist)
+        return oweight*self.fx
+    def writeToData (self):
+        wtdList = {}
+        for i in self.inputs:
+            wtdList[i.name] = i.writeToData()
+        return self.iws, wtdList
 
 class InputNode(Node):
     def __init__(self, name, value, outputNumber):
+        self.name = name
         self.function = None
         self.iw = None
         self.inputs = {}
         self.value = value
-        self.setOWeights(outputNumber)
-        
-    def setOWeights(self, outputNumber):
-        self.oWeights = {}
-        for i in range(outputNumber):
-            self.oWeights[i] = random()
-            
-    def findStartNode(self,node,previousNode=None):
+        self.setupOWeights(outputNumber)
+    def findStartNode(self,node,previousNode):
         return None
     def runSim(self,oweight):
         return self.value*oweight
+    def writeToData(self):
+        return self.value
     
 class OutputNode(Node):
     def __init__(self, name, value, inputnodes, iweights):
         self.inputs = inputnodes
+        self.name = name
         self.iws = iweights
         self.value = value
         self.function = None
+        self.writeToData()
+    def writeToData (self):
+        wtdList = {}
+        for i in self.inputs:
+            wtdList[i.name] = i.writeToData()
+        data[self.name] = self.value, self.iws, wtdList
     def findError(self):
-        startnodes = self.findStartNode(self)
-        endnodes = self.inputs[0].outputs
+        startnodes = self.inputs[0].findStartNode(self.inputs[0],self)
+        print(startnodes)
+        endnodes = data.keys()
         endnodevalues = []
         for i in endnodes:
-            endnodevalues.append(i.value)
+            endnodevalues.append(data[i][0])
         simOut = self.runSim()
         returnList = []
         for i in range(len(simOut)):
@@ -68,12 +99,12 @@ class OutputNode(Node):
     def runSim(self):
         returnList = []
         for i in range(len(self.inputs)):
-            returnList.append(self.inputs[i].runsim(iweights[i]))
+            returnList.append(self.inputs[i].runSim(self.iws[i]))
         return returnList
     def adjust(self):
         pass
 
-################ TEST AREA ##############
+################ TEST BUILD AREA ########
 
 ################ Functions ##############
     
@@ -81,6 +112,7 @@ def add(self,l):
     return sum(l)
 
 def multiply(self,l):
+    prod = 1
     for i in l:
         prod*=i
     return prod
@@ -93,9 +125,9 @@ def inputweight(current, previousLayer):
 
 ################ Layers ###################
 
-inputLayer_info = [['node1',1],['node2',2],['node3',3]]
-hiddenLayer_info = [['adder', add],['multiplier', multiply]]
-outputLayer_info = [['node4',4],['node5',1]]
+inputLayer_info = [["node1",1],["node2",2],["node3",3]]
+hiddenLayer_info = [["adder", add],["multiplier", multiply]]
+outputLayer_info = [["node4",4],["node5",1]]
 
 ################ Layer Creation ###########
 
@@ -108,3 +140,8 @@ for i in range(len(hiddenLayer_info)):
 outputLayer = []
 for i in range(len(outputLayer_info)):
     outputLayer.append(OutputNode(outputLayer_info[i][0],outputLayer_info[i][1], hiddenLayer, inputweight(i,hiddenLayer)))
+
+################ TEST EXECUTE AREA #########
+
+outputLayer[0].write()
+print(outputLayer[0].findError())
