@@ -57,7 +57,6 @@ LearningBot_instance.teachTruthes = function (info, influence) // info is a list
 }
 function evenate ( d ) // sets total of dictionary values to 1
 {
-	console.log(d);
 	var total = 0;
         var dic = shallowCopy(d);
 	for (var i in dic){total+=dic[i];}
@@ -69,8 +68,11 @@ LearningBot_instance.thinkTruthes = function (info, influence) // data processin
 	var beliefdict = {};
 	for (var i = 0; i < info.length -1; i++)
 	{
-		try {beliefdict[info[i][0]]++}
-		catch (e) {beliefdict[info[i][0]]=1}
+		if (info[info.length-1][1] === info[i][1])
+		{
+			if (info[i][0] in beliefdict)  {beliefdict[info[i][0]]++}
+			else {beliefdict[info[i][0]]=1;}
+		}
 	}
 	for (var i = 0; i < info.length -1; i++)
 	{
@@ -94,8 +96,6 @@ var a = 'a';
 info = [[[1,1],[2,0],[3,1],[10,1]],[[4,1],[2,0],[3,1],[10,1]],[[3,1],[2,1],[4,0],[10,0]],[[1,0],[2,1],[3,1],[10,0]],[[1,1],[2,0],[3,1],[10,0]],[[5,0],[2,1],[3,1],[10,0]],[[1,0],[2,1],[3,1],[10,0]]];
 for (var i in info)
 {
-	console.log(info[i]);
 	botA.teachTruthes(info[i]);
-	console.log(botA.truthesbelief_tot);
 }
 console.log(botA.truthesbelief);

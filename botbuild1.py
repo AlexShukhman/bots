@@ -32,7 +32,6 @@ class LearningBot:
         self.truthesmem.append(info)
         self.thinktruthes(info, influence)
     def evenate(self,d): # sets total of dictionary values to 1
-    i
         total = 0
         dic = d.copy()
         for i in dic.keys():
