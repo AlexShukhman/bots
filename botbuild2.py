@@ -18,27 +18,28 @@ class Node:
         self.iws = iweights # from upstream nodes
         self.name = name
         self.function = function
-        self.setupOWeights(outputNumber)
+        self.setupOWeights(outputNumber,0)
     def read(self):
         with open ('data.json', 'r') as f:
             data = json.load(f)
     def write(self):
         with open ('data.json', 'w') as f:
             json.dump(data, f)
-        print(json.dumps(data, indent = 4, sort_keys=True))
-    def setupOWeights(self, outputNumber):
-        self.oWeights = []
-        for i in range(outputNumber):
-            self.oWeights.append(random())
-        '''if data == {}:
+    def setupOWeights(self, outputNumber,level):
+        if data == {}:
             self.oWeights = []
             for i in range(outputNumber):
                 self.oWeights.append(random())
         else:
+            print ( data )
             minilist = []
-            for i in range(outputNumber):
-                pass
-            self.oWeights = minilist'''
+            if level == 0:
+                for i in range(outputNumber):
+                    minilist.append(data[list(data.keys())[0]][2][self.name][0][i])
+            else:
+                for i in range(outputNumber):
+                    minilist.append(data[list(data.keys())[i]][1][self.name])
+            self.oWeights = minilist
     def findStartNode(self, node, previousNode):
         if node.inputs[0].findStartNode(node.inputs[0], node) == None:
             return node.inputs
@@ -54,7 +55,10 @@ class Node:
         wtdList = {}
         for i in self.inputs:
             wtdList[i.name] = i.writeToData()
-        return self.iws, wtdList
+        weightdic = {}
+        for i in range(len(self.inputs)):
+            weightdic[self.inputs[i].name] = self.iws[i]
+        return weightdic, wtdList
 
 class InputNode(Node):
     def __init__(self, name, value, outputNumber):
@@ -63,7 +67,7 @@ class InputNode(Node):
         self.iw = None
         self.inputs = {}
         self.value = value
-        self.setupOWeights(outputNumber)
+        self.setupOWeights(outputNumber,1)
     def findStartNode(self,node,previousNode):
         return None
     def runSim(self,oweight):
@@ -83,10 +87,12 @@ class OutputNode(Node):
         wtdList = {}
         for i in self.inputs:
             wtdList[i.name] = i.writeToData()
-        data[self.name] = self.value, self.iws, wtdList
+        weightdic = {}
+        for i in range(len(self.inputs)):
+            weightdic[self.inputs[i].name] = self.iws[i]
+        data[self.name] = self.value, weightdic, wtdList
     def findError(self):
         startnodes = self.inputs[0].findStartNode(self.inputs[0],self)
-        print(startnodes)
         endnodes = data.keys()
         endnodevalues = []
         for i in endnodes:
@@ -95,7 +101,7 @@ class OutputNode(Node):
         returnList = []
         for i in range(len(simOut)):
             returnList.append((simOut[i]-endnodevalues[i])**2)
-        return returnList, startnodes
+        return returnList
     def runSim(self):
         returnList = []
         for i in range(len(self.inputs)):
